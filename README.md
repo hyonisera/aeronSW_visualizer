@@ -18,9 +18,9 @@ $ sudo apt install libglm-dev
 aeronSW_visualizer
 ├── data
 │   └── uam_data
-│       ├── detectinfo_YY_MM_DD_HH_MM_SS.udd
+│       ├── detectinfo_yy_MM_dd_HH_mm_ss.udd
 │       ...
-│       ├── lidar_0_YY_MM_DD_HH_MM_SS.uld
+│       ├── lidar_0_yy_MM_dd_HH_mm_ss.uld
 │       ...
 └── visualizer
     ├── CMakeLists.txt
@@ -47,7 +47,7 @@ $ make
 ```
 $ ./aeronSW_visualizer [start_time] [end_time]
 ```
-- time format: YY-MM-DD-HH-MM-SS
+- time format: yy-MM-dd-HH-mm-ss
 
 ## Functions
 1. 프레임 이동</p>
