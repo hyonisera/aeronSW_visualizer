@@ -14,24 +14,26 @@ $ sudo apt install libglm-dev
 ```
 
 ## Project Tree
-aeronSW_visualizer</p>
-├── data</p>
-│   └── uam_data</p>
-│       ├── detectinfo_YY_MM_DD_HH_MM_SS.udd</p>
-│       ...</p>
-│       ├── lidar_0_YY_MM_DD_HH_MM_SS.uld   // 0: 라이다 번호</p>
-│       ...</p>
-└── visualizer</p>
-    ├── CMakeLists.txt</p>
-    └── src</p>
-        ├── binary_utils.cpp</p>
-        ├── binary_utils.h</p>
-        ├── camera.cpp</p>
-        ├── camera.h</p>
-        ├── configs.h</p>
-        ├── main.cpp</p>
-        ├── space.cpp</p>
-        └── space.h</p>
+```
+aeronSW_visualizer
+├── data
+│   └── uam_data
+│       ├── detectinfo_YY_MM_DD_HH_MM_SS.udd
+│       ...
+│       ├── lidar_0_YY_MM_DD_HH_MM_SS.uld   // 0: 라이다 번호
+│       ...
+└── visualizer
+    ├── CMakeLists.txt
+    └── src
+        ├── binary_utils.cpp
+        ├── binary_utils.h
+        ├── camera.cpp
+        ├── camera.h
+        ├── configs.h
+        ├── main.cpp
+        ├── space.cpp
+        └── space.h
+```
 
 ## Build
 ```
