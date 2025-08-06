@@ -23,7 +23,7 @@
 #define BINARY_SEARCH   2
 int mode = TIMELINE;
 #define FRAME_RATE      5      // 초당 프레임 수(Hz)
-
+    
 // Globals
 Camera camera;
 Space space;
@@ -76,7 +76,7 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    std::string uam_data_path = "../../data/uam_data";
+    std::string uam_data_path = "../../data/0805_v3";
 
     // 디렉토리 존재 확인
     if(!std::filesystem::exists(uam_data_path)) {
@@ -154,6 +154,16 @@ int main(int argc, char* argv[]) {
                 // }
             }
 #endif
+            // lidar_loaded_bin.erase(
+            //     std::remove_if(
+            //         lidar_loaded_bin.begin(),
+            //         lidar_loaded_bin.end(),
+            //         [](const LidarBinary& frame) {
+            //             return frame.time == 0 || frame.num == 0;
+            //         }
+            //     ),
+            //     lidar_loaded_bin.end()
+            // );
             std::cout << "Lidar data loaded" << std::endl;
         }
     }
@@ -191,6 +201,16 @@ int main(int argc, char* argv[]) {
                 }
             }
 #endif
+            // obj_loaded_bin.erase(
+            //     std::remove_if(
+            //         obj_loaded_bin.begin(),
+            //         obj_loaded_bin.end(),
+            //         [](const ObjBinary& frame) {
+            //             return frame.time == 0 || frame.num == 0;
+            //         }
+            //     ),
+            //     obj_loaded_bin.end()
+            // );
             std::cout << "ObjectInfo data loaded" << std::endl;
         }
     }
@@ -250,6 +270,7 @@ int main(int argc, char* argv[]) {
         }
         std::cout << "Object-to-Lidar mapping created successfully" << std::endl;
     }
+    
 
     // 타임라인 방식
     std::vector<UnifiedData> timeline;
@@ -258,14 +279,26 @@ int main(int argc, char* argv[]) {
     MyTimer timer;
 
     while(lidar_idx < lidar_loaded_bin.size() || obj_idx < obj_loaded_bin.size()) {
-        if(obj_loaded_bin[obj_idx].time <= lidar_loaded_bin[lidar_idx].time) {
-            if(obj_loaded_bin[obj_idx].time == 0) {     // 빈 파일(num=0, time=0) 예외처리
-                ++obj_idx;
-                continue;
+        if(obj_idx >= obj_loaded_bin.size() || obj_loaded_bin[obj_idx].time == 0) {
+            if(lidar_idx < lidar_loaded_bin.size() && lidar_loaded_bin[lidar_idx].time != 0) {
+                timeline.push_back({DataType::LIDAR, lidar_idx++});
+            } else {
+                ++lidar_idx;
             }
-            timeline.push_back({DataType::OBJECT, obj_idx++});
+            continue;
         }
-        else {
+        if(lidar_idx >= lidar_loaded_bin.size() || lidar_loaded_bin[lidar_idx].time == 0) {
+            if(obj_idx < obj_loaded_bin.size() && obj_loaded_bin[obj_idx].time != 0) {
+                timeline.push_back({DataType::OBJECT, obj_idx++});
+            } else {
+                ++obj_idx;
+            }
+            continue;
+        }
+
+        if(obj_loaded_bin[obj_idx].time <= lidar_loaded_bin[lidar_idx].time) {
+            timeline.push_back({DataType::OBJECT, obj_idx++});
+        } else {
             timeline.push_back({DataType::LIDAR, lidar_idx++});
         }
     }
@@ -276,7 +309,7 @@ int main(int argc, char* argv[]) {
             std::string time_str = space.formatUnixTime(lidar_loaded_bin[entry.index].time);
             std::cout << "[" << i << "] lid idx = " << entry.index << ", time = " << lidar_loaded_bin[entry.index].time << " / " << time_str << std::endl;
         }
-        else {
+        else{
             std::string time_str = space.formatUnixTime(obj_loaded_bin[entry.index].time);
             std::cout << "[" << i << "] obj idx = " << entry.index << ", time = " << obj_loaded_bin[entry.index].time << " / " << time_str << std::endl;
         }

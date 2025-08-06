@@ -10,26 +10,38 @@ bool BinaryUtils::load_lidar_binary(const std::string& filename, std::vector<Lid
         return false;
     }
 
+    int total_count = 0;
+
     while(ifs.peek() != EOF) {      // 모든 파일 읽기
         LidarBinary data;
+        ++total_count;
         
         ifs.read(reinterpret_cast<char*>(&data.time), sizeof(data.time));
         ifs.read(reinterpret_cast<char*>(&data.num), sizeof(data.num));
 
-        if(!data.num){
-            std::cout << "Lidar data is empty." << std::endl;
-            ifs.close();
-            return true;
+        if(data.num == 0 || data.time == 0) {
+            std::cout << "[SKIPPED] Lidar idx: "<< total_count - 1 << ", time: " << data.time << ", num: " << data.num << std::endl;
+            continue;
         }
+
+        if(data.time < 1600000000000ULL || data.time > 1900000000000ULL) {
+            std::cerr << "[SKIPPED] Unrealistic lidar time at idx: " << total_count - 1 << ", time: " << data.time << std::endl;
+            continue;
+        }
+
+        // if(!data.num){
+        //     std::cout << "Lidar data is empty." << std::endl;
+        //     ifs.close();
+        //     return true;
+        // }
 
         // resize로 메모리 할당해야 실행됨
         data.lidar_data.resize(data.num); // resize하는 이유 : 동적인 벡터크기를 지정하여 안전하게 접근/저장하기 위함.
 
         ifs.read(reinterpret_cast<char*>(data.lidar_data.data()), data.num * sizeof(LidarData));    // data() 데이터 처음부터 읽기
 
-        std::cout << "[LOADED] time: " << data.time << ", num: " << data.num << std::endl;
-
         out_data_list.push_back(data);
+        std::cout << "[LOADED] idx: " << total_count - 1 << ", time: " << data.time << ", num: " << data.num << std::endl;
     }
 
     ifs.close();
@@ -57,26 +69,39 @@ bool BinaryUtils::load_obj_binary(const std::string& filename, std::vector<ObjBi
         return false;
     }
 
-    int empty_count = 0;
     int total_count = 0;
+
     while(ifs.peek() != EOF) { 
         ObjBinary data;
         ++total_count;
+
         ifs.read(reinterpret_cast<char*>(&data.time), sizeof(data.time));
+        if(ifs.gcount() != sizeof(data.time)) {
+            std::cerr << "[ERROR] Failed to read time at idx: " << total_count - 1 << std::endl;
+            break;
+        }
         ifs.read(reinterpret_cast<char*>(&data.num), sizeof(data.num));
+        if(ifs.gcount() != sizeof(data.num)) {
+            std::cerr << "[ERROR] Failed to read num at idx: " << total_count - 1 << std::endl;
+            break;
+        }
 
 
         // std::cout << "======>> data.num : " << data.num << std::endl;
         // printf("time / num : %08x / %08x / %08x\n", *((int*)&(data.time)), *((int*)&(data.time)+1), data.num);
         if(data.num == 0 || data.time == 0) {
-            ++empty_count;
-            std::cout << "[SKIPPED] idx: "<< total_count - 1 << ", time: " << data.time << ", num: " << data.num << std::endl;
+            std::cout << "[SKIPPED] Obj idx: "<< total_count - 1 << ", time: " << data.time << ", num: " << data.num << std::endl;
+            continue;
+        }
+
+        if(data.time < 1600000000000ULL || data.time > 1900000000000ULL) {
+            std::cerr << "[SKIPPED] Unrealistic obj time at idx: " << total_count - 1 << ", time: " << data.time << std::endl;
             continue;
         }
 
         // 필수: 비정상 크기 방어 (예: 너무 큰 값이나 음수 cast된 경우)
         if(data.num > 100000) {
-            std::cerr << "[ERROR] Unreasonably large object count: " << data.num << std::endl;
+            std::cerr << "[ERROR] Unreasonably large object count at idx: " << total_count - 1 << ", num: " << data.num << std::endl;
             printf("time / num : %08x / %08x / %08x\n", *((int*)&(data.time)), *((int*)&(data.time)+1), data.num);
             break;
         }
@@ -86,9 +111,13 @@ bool BinaryUtils::load_obj_binary(const std::string& filename, std::vector<ObjBi
 
         ifs.read(reinterpret_cast<char*>(data.obj_data.data()), data.num * sizeof(ObjData));    // data() 데이터 처음부터 읽기
 
+        if(ifs.gcount() != static_cast<std::streamsize>(data.num * sizeof(ObjData))) {
+            std::cerr << "[ERROR] Incomplete obj data read" << std::endl;
+            break;
+        }
+
         out_data_list.push_back(data);
         std::cout << "[LOADED] idx: " << total_count - 1 << ", time: " << data.time << ", num: " << data.num << std::endl;
-    
     }
 
     ifs.close();
