@@ -1,7 +1,7 @@
 #pragma once
 
 //INIT
-#define INIT_CAM_RADIUS     5.0f   //초기 카메라 위치 : 중심으로부터 거리
+#define INIT_CAM_RADIUS     10.0f   //초기 카메라 위치 : 중심으로부터 거리
 #define INIT_CAM_VANGLE     10.0f   //초기 카메라 위치 : 수직각도 // degree
 #define INIT_CAM_HANGLE     50.0f   //초기 카메라 위치 : 수평각도 // degree
 

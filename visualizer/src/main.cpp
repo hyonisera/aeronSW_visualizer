@@ -23,6 +23,9 @@
 #define BINARY_SEARCH   2
 int mode = TIMELINE;
 #define FRAME_RATE      5      // 초당 프레임 수(Hz)
+
+#define MIN_VALID_TIME      1577836800000ULL
+#define MAX_VALID_TIME      1893456000000ULL
     
 // Globals
 Camera camera;
@@ -279,22 +282,44 @@ int main(int argc, char* argv[]) {
     MyTimer timer;
 
     while(lidar_idx < lidar_loaded_bin.size() || obj_idx < obj_loaded_bin.size()) {
-        if(obj_idx >= obj_loaded_bin.size() || obj_loaded_bin[obj_idx].time == 0) {
-            if(lidar_idx < lidar_loaded_bin.size() && lidar_loaded_bin[lidar_idx].time != 0) {
-                timeline.push_back({DataType::LIDAR, lidar_idx++});
-            } else {
-                ++lidar_idx;
-            }
+        bool valid_obj = (obj_idx < obj_loaded_bin.size() && 
+                            obj_loaded_bin[obj_idx].time >= MIN_VALID_TIME && 
+                            obj_loaded_bin[obj_idx].time <= MAX_VALID_TIME);
+        bool valid_lidar = (lidar_idx < lidar_loaded_bin.size() && 
+                            lidar_loaded_bin[lidar_idx].time >= MIN_VALID_TIME && 
+                            lidar_loaded_bin[lidar_idx].time <= MAX_VALID_TIME);
+
+        if(!valid_obj && valid_lidar) {
+            timeline.push_back({DataType::LIDAR, lidar_idx++});
             continue;
         }
-        if(lidar_idx >= lidar_loaded_bin.size() || lidar_loaded_bin[lidar_idx].time == 0) {
-            if(obj_idx < obj_loaded_bin.size() && obj_loaded_bin[obj_idx].time != 0) {
-                timeline.push_back({DataType::OBJECT, obj_idx++});
-            } else {
-                ++obj_idx;
-            }
+        if(!valid_lidar && valid_obj) {
+            timeline.push_back({DataType::OBJECT, obj_idx++});
             continue;
         }
+
+        if(!valid_obj && !valid_lidar) {
+            ++obj_idx;
+            ++lidar_idx;
+            continue;
+        }
+
+        // if(obj_idx >= obj_loaded_bin.size() || obj_loaded_bin[obj_idx].time == 0) {
+        //     if(lidar_idx < lidar_loaded_bin.size() && lidar_loaded_bin[lidar_idx].time != 0) {
+        //         timeline.push_back({DataType::LIDAR, lidar_idx++});
+        //     } else {
+        //         ++lidar_idx;
+        //     }
+        //     continue;
+        // }
+        // if(lidar_idx >= lidar_loaded_bin.size() || lidar_loaded_bin[lidar_idx].time == 0) {
+        //     if(obj_idx < obj_loaded_bin.size() && obj_loaded_bin[obj_idx].time != 0) {
+        //         timeline.push_back({DataType::OBJECT, obj_idx++});
+        //     } else {
+        //         ++obj_idx;
+        //     }
+        //     continue;
+        // }
 
         if(obj_loaded_bin[obj_idx].time <= lidar_loaded_bin[lidar_idx].time) {
             timeline.push_back({DataType::OBJECT, obj_idx++});
