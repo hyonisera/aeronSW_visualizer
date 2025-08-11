@@ -29,16 +29,15 @@ bool BinaryUtils::load_lidar_binary(const std::string& filename, std::vector<Lid
             continue;
         }
 
-        // if(!data.num){
-        //     std::cout << "Lidar data is empty." << std::endl;
-        //     ifs.close();
-        //     return true;
-        // }
-
         // resize로 메모리 할당해야 실행됨
         data.lidar_data.resize(data.num); // resize하는 이유 : 동적인 벡터크기를 지정하여 안전하게 접근/저장하기 위함.
 
         ifs.read(reinterpret_cast<char*>(data.lidar_data.data()), data.num * sizeof(LidarData));    // data() 데이터 처음부터 읽기
+
+        if(ifs.gcount() != static_cast<std::streamsize>(data.num * sizeof(LidarData))) {
+            std::cerr << "[ERROR] Incomplete lidar data read" << std::endl;
+            break;
+        }
 
         out_data_list.push_back(data);
         std::cout << "[LOADED] idx: " << total_count - 1 << ", time: " << data.time << ", num: " << data.num << std::endl;
@@ -76,15 +75,15 @@ bool BinaryUtils::load_obj_binary(const std::string& filename, std::vector<ObjBi
         ++total_count;
 
         ifs.read(reinterpret_cast<char*>(&data.time), sizeof(data.time));
-        if(ifs.gcount() != sizeof(data.time)) {
-            std::cerr << "[ERROR] Failed to read time at idx: " << total_count - 1 << std::endl;
-            break;
-        }
+        // if(ifs.gcount() != sizeof(data.time)) {
+        //     std::cerr << "[ERROR] Failed to read time at idx: " << total_count - 1 << std::endl;
+        //     break;
+        // }
         ifs.read(reinterpret_cast<char*>(&data.num), sizeof(data.num));
-        if(ifs.gcount() != sizeof(data.num)) {
-            std::cerr << "[ERROR] Failed to read num at idx: " << total_count - 1 << std::endl;
-            break;
-        }
+        // if(ifs.gcount() != sizeof(data.num)) {
+        //     std::cerr << "[ERROR] Failed to read num at idx: " << total_count - 1 << std::endl;
+        //     break;
+        // }
 
 
         // std::cout << "======>> data.num : " << data.num << std::endl;

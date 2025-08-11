@@ -24,8 +24,9 @@
 int mode = TIMELINE;
 #define FRAME_RATE      5      // 초당 프레임 수(Hz)
 
-#define MIN_VALID_TIME      1577836800000ULL
-#define MAX_VALID_TIME      1893456000000ULL
+// 비정상 time 값 필터링
+#define MIN_VALID_TIME      1577836800000ULL    // 2020년 1월 1일
+#define MAX_VALID_TIME      1893456000000ULL    // 2030년 1월 1일
     
 // Globals
 Camera camera;
@@ -79,7 +80,7 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    std::string uam_data_path = "../../data/0805_v3";
+    std::string uam_data_path = "../../data/uam_data";
 
     // 디렉토리 존재 확인
     if(!std::filesystem::exists(uam_data_path)) {
@@ -157,16 +158,6 @@ int main(int argc, char* argv[]) {
                 // }
             }
 #endif
-            // lidar_loaded_bin.erase(
-            //     std::remove_if(
-            //         lidar_loaded_bin.begin(),
-            //         lidar_loaded_bin.end(),
-            //         [](const LidarBinary& frame) {
-            //             return frame.time == 0 || frame.num == 0;
-            //         }
-            //     ),
-            //     lidar_loaded_bin.end()
-            // );
             std::cout << "Lidar data loaded" << std::endl;
         }
     }
@@ -204,16 +195,6 @@ int main(int argc, char* argv[]) {
                 }
             }
 #endif
-            // obj_loaded_bin.erase(
-            //     std::remove_if(
-            //         obj_loaded_bin.begin(),
-            //         obj_loaded_bin.end(),
-            //         [](const ObjBinary& frame) {
-            //             return frame.time == 0 || frame.num == 0;
-            //         }
-            //     ),
-            //     obj_loaded_bin.end()
-            // );
             std::cout << "ObjectInfo data loaded" << std::endl;
         }
     }
@@ -281,6 +262,7 @@ int main(int argc, char* argv[]) {
     size_t obj_idx = 0;
     MyTimer timer;
 
+    // 비정상 time 값 원인: 타임라인 생성시 벡터 인덱스 초과 -> 라이다와 객체인식 데이터가 범위 내 정상 시간인지 확인
     while(lidar_idx < lidar_loaded_bin.size() || obj_idx < obj_loaded_bin.size()) {
         bool valid_obj = (obj_idx < obj_loaded_bin.size() && 
                             obj_loaded_bin[obj_idx].time >= MIN_VALID_TIME && 
@@ -303,23 +285,6 @@ int main(int argc, char* argv[]) {
             ++lidar_idx;
             continue;
         }
-
-        // if(obj_idx >= obj_loaded_bin.size() || obj_loaded_bin[obj_idx].time == 0) {
-        //     if(lidar_idx < lidar_loaded_bin.size() && lidar_loaded_bin[lidar_idx].time != 0) {
-        //         timeline.push_back({DataType::LIDAR, lidar_idx++});
-        //     } else {
-        //         ++lidar_idx;
-        //     }
-        //     continue;
-        // }
-        // if(lidar_idx >= lidar_loaded_bin.size() || lidar_loaded_bin[lidar_idx].time == 0) {
-        //     if(obj_idx < obj_loaded_bin.size() && obj_loaded_bin[obj_idx].time != 0) {
-        //         timeline.push_back({DataType::OBJECT, obj_idx++});
-        //     } else {
-        //         ++obj_idx;
-        //     }
-        //     continue;
-        // }
 
         if(obj_loaded_bin[obj_idx].time <= lidar_loaded_bin[lidar_idx].time) {
             timeline.push_back({DataType::OBJECT, obj_idx++});
