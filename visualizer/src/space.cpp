@@ -378,3 +378,20 @@ void Space::renderText2D(const std::string& text, float x, float y, const glm::v
     glMatrixMode(GL_MODELVIEW);
 }
 
+void Space::addCameraFOVs(const std::vector<glm::vec3>& positions, const std::vector<glm::vec3>& colors, 
+                            const std::vector<std::vector<glm::vec3>>& corners_in_camera, 
+                            const std::vector<glm::mat4>& cam_to_lidar_transforms) {
+    const size_t n = corners_in_camera.size();
+    for(size_t i = 0; i < n; i++) {
+        const glm::vec3& camPos = positions[i];
+        const glm::vec3& camColor = colors[i];
+        const auto& corners = corners_in_camera[i];
+        const glm::mat4& T = cam_to_lidar_transforms[i];
+
+        for(int cidx = 0; cidx < 4; ++cidx) {
+            glm::vec4 camPt(corners[cidx], 1.0f);
+            glm::vec4 lidarPt = T * camPt;
+            addLine(camPos, glm::vec3(lidarPt.x, lidarPt.y, lidarPt.z), camColor);
+        }
+    }
+}
