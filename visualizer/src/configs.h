@@ -30,19 +30,11 @@
 // dataset
 #define COCODATASET 1
 
-// // 라이다와 카메라 사이의 거리(float) config.txt
-// #define CAMERA0_X       0.0
-// #define CAMERA0_Y       -0.1
-// #define CAMERA0_Z       0.0
-// #define CAMERA1_X       0.0
-// #define CAMERA1_Y       0.1
-// #define CAMERA1_Z       0.0
 
-// // image sensor configure (camera)
-// // C270 HD 웹캠: 대각선 시야(FOV) 55도      1280x720
-// #define LENS_HFOV       48.81   // degree // 수평 시야각
-// #define LENS_VFOV       28.63   // degree // 수직 시야각
-// #define LENS_ZOOM       5       // 화면 상의 카메라 시야를 보여주는 선 길이를 늘리기 위함
+// 라이다와 카메라 사이의 거리(float) config.txt
+#define CAMERA0_X       -0.09
+#define CAMERA0_Y       -0.21
+#define CAMERA0_Z       0.0
 
 
 #include <chrono>

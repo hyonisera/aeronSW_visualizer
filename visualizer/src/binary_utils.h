@@ -46,10 +46,23 @@ typedef struct obj_data_pack{
     float size;
 }ObjData;
 
+// // 시야각 box_converted_regions -> float로 저장
+// typedef struct float3_pack{
+//     float x, y, z;
+// }Float3;
+
+// typedef struct obj_region_block_pack{
+//     std::vector<std::vector<Float3>> regions;
+// }ObjRegionBlock;
+
 typedef struct obj_binary_data{
-    uint64_t time; // 시간
-    uint32_t num; // dectect_obj 수
-    std::vector<ObjData> obj_data; // 1차원 벡터로 ObjData 저장
+    uint64_t time;                  // 시간
+    uint32_t num;                   // dectect_obj 수
+    std::vector<ObjData> obj_data;  // 1차원 벡터로 ObjData 저장
+    // uint32_t outer_size;            // regions 개수 1 (객체 수)
+    // uint32_t inner_size;            // 꼭지점개수 4
+    // ObjRegionBlock region_block;    // point[3] (x,y,z)
+    std::vector<std::vector<glm::vec3>> bcr;
 }ObjBinary;
 
 

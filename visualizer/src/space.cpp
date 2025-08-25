@@ -7,6 +7,7 @@
 
 extern float orbitRadius;
 
+
 std::string vecToStr(const glm::vec3& v) {
     char buff[100];
     snprintf(buff, sizeof(buff), "%.4f, %.4f, %.4f", v.x, v.y, v.z);
@@ -221,6 +222,9 @@ void Space::lidarIntoSpace(const LidarBinary& index) {
 }
 
 void Space::objIntoSpace(const ObjBinary& index) {
+    glm::vec3 camera0(CAMERA0_X, CAMERA0_Y, CAMERA0_Z);
+
+    
     render_text_list.clear();
 
     
@@ -233,7 +237,6 @@ void Space::objIntoSpace(const ObjBinary& index) {
         glm::vec3 point_nearest(_points[i].nearest_x, _points[i].nearest_y, _points[i].nearest_z);
         glm::vec3 point_min(_points[i].min_x, _points[i].min_y, _points[i].min_z);
         glm::vec3 point_max(_points[i].max_x, _points[i].max_y, _points[i].max_z);
-
 
         #if STATIC
         glm::vec3 red(1.0f, 0.0f, 0.0f);
@@ -253,6 +256,59 @@ void Space::objIntoSpace(const ObjBinary& index) {
         addBox(point_min, point_max, color);
         addLine(glm::vec3(0.0f, 0.0f, 0.0f), point_nearest, color);
         #endif
+
+        // 카메라에서 object detection하여 인지한 물체가 있을 수 있는 공간을 표시
+
+        const glm::vec3 yellow(1.0f, 1.0f, 0.0f);
+        const glm::vec3 green(0.2f, 1.0f, 0.2f);
+        for (const auto& region : index.bcr) {
+            if (region.empty()) continue;
+
+            // 카메라 -> 꼭짓점
+            for (const auto& p : region) {
+                // 필요시 유효성 체크
+                if (!std::isfinite(p.x) || !std::isfinite(p.y) || !std::isfinite(p.z)) continue;
+                addLine(camera0, p, yellow);
+            }
+
+            // // 꼭짓점 테두리(폐곡선)
+            // const size_t n = region.size();
+            // if (n >= 2) {
+            //     for (size_t j = 0; j < n; ++j) {
+            //         const glm::vec3& a = region[j];
+            //         const glm::vec3& b = region[(j + 1) % n];
+            //         if (!std::isfinite(a.x) || !std::isfinite(a.y) || !std::isfinite(a.z)) continue;
+            //         if (!std::isfinite(b.x) || !std::isfinite(b.y) || !std::isfinite(b.z)) continue;
+            //         addLine(a, b, green);
+            //     }
+            // }
+        }
+        
+        // addLine(camera0, point_bcr0, yellow);
+        // addLine(camera0, point_bcr1, yellow);
+        // addLine(camera0, point_bcr2, yellow);
+        // addLine(camera0, point_bcr3, yellow);
+
+        // for(const auto& region : _points[i].box_converted_regions) {
+        //     const size_t n = std::min<size_t>(4, region.size());
+        //     for(size_t j = 0; j < n; j++) {
+        //         const glm::vec3& p = region[j];
+        //     }
+        // }
+
+        // if(i < index.region_block.regions.size()) {
+        //     const auto& region = index.region_block.regions[i];
+
+        //     glm::vec3 yellow(1.0f, 1.0f, 0.0f);
+        //     const size_t n = std::min<size_t>(4, region.size());
+
+        //     for(size_t j = 0; j < n; ++j) {
+        //         const Float3& pt = region[j];
+        //         glm::vec3 p(pt.x, pt.y, pt.z);
+
+        //         addLine(camera0, p, yellow);
+        //     }
+        // }
 
 
         auto it = objId_to_label.find(_points[i].obj_id);
@@ -376,22 +432,4 @@ void Space::renderText2D(const std::string& text, float x, float y, const glm::v
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
-}
-
-void Space::addCameraFOVs(const std::vector<glm::vec3>& positions, const std::vector<glm::vec3>& colors, 
-                            const std::vector<std::vector<glm::vec3>>& corners_in_camera, 
-                            const std::vector<glm::mat4>& cam_to_lidar_transforms) {
-    const size_t n = corners_in_camera.size();
-    for(size_t i = 0; i < n; i++) {
-        const glm::vec3& camPos = positions[i];
-        const glm::vec3& camColor = colors[i];
-        const auto& corners = corners_in_camera[i];
-        const glm::mat4& T = cam_to_lidar_transforms[i];
-
-        for(int cidx = 0; cidx < 4; ++cidx) {
-            glm::vec4 camPt(corners[cidx], 1.0f);
-            glm::vec4 lidarPt = T * camPt;
-            addLine(camPos, glm::vec3(lidarPt.x, lidarPt.y, lidarPt.z), camColor);
-        }
-    }
 }

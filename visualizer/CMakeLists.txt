@@ -19,17 +19,12 @@ pkg_search_module(GLFW REQUIRED glfw3)
 include_directories(${GLFW_INCLUDE_DIRS})
 link_directories(${GLFW_LIBRARY_DIRS})
 
-# eigen library
-find_package(Eigen3 REQUIRED)
-include_directories(${EIGEN3_INCLUDE_DIR})
-
 # Source file and header
 set(SRC_FILES
     src/main.cpp
     src/camera.cpp
     src/space.cpp
     src/binary_utils.cpp
-    src/convert_coord.cpp
 )
 
 set(HEADER_FILES
@@ -37,8 +32,6 @@ set(HEADER_FILES
     src/space.h
     src/configs.h
     src/binary_utils.h
-    src/lens.h
-    src/convert_coord.h
 )
 
 # Execution files
@@ -52,11 +45,9 @@ target_link_libraries(${PROJECT_NAME}
     GLEW::GLEW
     glfw
     ${GLFW_LIBRARIES}
-    Eigen3::Eigen
 )
 
 # Add the include directory
 target_include_directories(${PROJECT_NAME} PRIVATE 
     src
-    ${EIGEN3_INCLUDE_DIR}
 )

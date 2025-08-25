@@ -14,7 +14,6 @@
 
 #include "configs.h"
 #include "binary_utils.h"
-#include "lens.h"
 
 
 typedef struct _box{
@@ -66,10 +65,6 @@ public:
     void renderText2D(const std::string& text, float x, float y, const glm::vec3& color) const;
 
     std::string formatUnixTime(uint64_t unixtime) const;
-
-    void addCameraFOVs(const std::vector<glm::vec3>& positions, const std::vector<glm::vec3>& colors, 
-                            const std::vector<std::vector<glm::vec3>>& corners_in_camera, 
-                            const std::vector<glm::mat4>& cam_to_lidar_transforms);
     
 
     std::vector<std::pair<glm::vec3, glm::vec3>> lidar_points; //point, color

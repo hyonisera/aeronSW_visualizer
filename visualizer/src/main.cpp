@@ -6,8 +6,6 @@
 #include <glm/gtc/constants.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <GL/glut.h>
-#include <Eigen/Dense>
-#include <Eigen/Geometry>
 #include <iostream>
 #include <string>
 #include <filesystem>
@@ -19,8 +17,7 @@
 #include "space.h"
 #include "configs.h"
 #include "binary_utils.h"
-#include "lens.h"
-#include "convert_coord.h"
+
 
 #define WINDOW          1
 #define PRINT_VAL       0
@@ -85,7 +82,7 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    std::string uam_data_path = "../../data/0805";
+    std::string uam_data_path = "../../data/uam_data";
 
     // 디렉토리 존재 확인
     if(!std::filesystem::exists(uam_data_path)) {
@@ -194,10 +191,18 @@ int main(int argc, char* argv[]) {
                                     << ", max_y: " << _data.max_y
                                     << ", max_z: " << _data.max_z
                                     << ", distance: " << _data.distance
-                                    << ", size: " << _data.size
-                                    << std::endl;
+                                    << ", size: " << _data.size << std::endl;
                     i++;
                 }
+
+                // std::cout << "outer_size: " << data.outer_size << ", inner_size: " << data.inner_size << "\n";
+                // for(size_t r = 0; r < data.region_block.regions.size(); ++r) {
+                //     std::cout << "  Region " << r << " (" << data.region_block.regions[r].size() << "   points):\n";
+                //     for(size_t p = 0; p < data.region_block.regions[r].size(); ++p) {
+                //         const Float3& pt = data.region_block.regions[r][p];
+                //         std::cout << "      (" << pt.x << ", " << pt.y << ", " << pt.z << ")\n";
+                //     }
+                // }
             }
 #endif
             std::cout << "ObjectInfo data loaded" << std::endl;
@@ -313,83 +318,6 @@ int main(int argc, char* argv[]) {
     size_t timeline_idx = 0;
 
 
-    //============================= 다중 카메라 시야각(FOV) 생성 =================================
-
-    std::vector<LensView> lens_views;
-    std::vector<glm::mat4> matC_list;
-
-    for(const auto& cam : cameras) {
-        // 각 카메라별 시야 벡터 생성
-        glm::vec3 lens_way = static_cast<float>(LENS_ZOOM) * glm::normalize(cam.direction);
-        glm::vec3 lens_h(0.0f, 0.0f, LENS_ZOOM * glm::tan(glm::radians(LENS_VFOV/2.0f)));
-        glm::vec3 lens_w(0.0f, LENS_ZOOM * glm::tan(glm::radians(LENS_HFOV/2.0f)), 0.0f);
-
-        // 각 카메라별 LensView 생성
-        LensView lens(lens_way, lens_h, lens_w, cam.position);
-        lens_views.push_back(lens);
-
-        // 각 카메라별 변환 행렬 계산
-        ConvertMatrix CM;
-        Coordinate trans{ cam.position.x, cam.position.y, cam.position.z };
-        CM.setTransition(trans);
-
-        // 고정 회전
-        Quaternion q_id; q_id.w = 1; q_id.x = q_id.y = q_id.z = 0;
-        CM.setStartQuaternion(q_id);
-        CM.setDstQuaternion(q_id);
-        CM.setStartToDstQuaternion();
-
-        CM.makeConvertMatrix();
-        glm::mat4 matC = glm::transpose(glm::make_mat4(CM.convert_matrix.data()));
-        matC_list.push_back(matC);
-    }
-
-
-
-    // // set for conversion matrix // 라이다와 카메라 사이의 거리 등록, 변환행렬을 위한 객체 생성
-    // ConvertMatrix CM;
-
-    // Coordinate t;
-
-    // t.x = CAMERA0_X; t.y = CAMERA0_Y; t.z = CAMERA0_Z;
-
-    // CM.setTransition(t);
-
-    // // for image sensor view vector
-    // // x    // 카메라가 바라보는 방향이 x이므로 카메라 화면의 위쪽은 z축, 화면의 왼쪽은 y축
-    // glm::vec3 lens_way(LENS_ZOOM * 1.0f, 0.0f, 0.0f);   // 카메라가 바라보는 전방 방향 벡터
-    // glm::vec3 lens_h(0.0f, 0.0f, LENS_ZOOM * glm::tan(glm::radians(LENS_VFOV / 2.0f)));     // 수직 시야각에 따른 높이 벡터
-    // glm::vec3 lens_w(0.0f, LENS_ZOOM * glm::tan(glm::radians(LENS_HFOV / 2.0f)), 0.0f);     // 수평 시야각에 따른 너비 벡터
-
-    // LensView lens(lens_way, lens_h, lens_w, glm::vec3(t.x, t.y, t.z));
-    // std::vector<float> lens_viewvector;     // 카메라 기준 모서리를 나타내는 4개의 선 등록
-
-    // for(int i = 0; i < lens.lens_view_vector.size(); i++) {
-    //     lens_viewvector.push_back(lens.lens_view_vector[i].x);
-    //     lens_viewvector.push_back(lens.lens_view_vector[i].y);
-    //     lens_viewvector.push_back(lens.lens_view_vector[i].z);
-    //     lens_viewvector.push_back(1.0f);
-    // }
-
-    // // 고정 회전
-    // Quaternion q_id; q_id.w = 1.0f; q_id.x = 0.0f; q_id.y = 0.0f; q_id.z = 0.0f;
-    // CM.setStartQuaternion(q_id);
-    // CM.setDstQuaternion(q_id);
-    // CM.setStartToDstQuaternion();
-    // CM.makeConvertMatrix();
-
-    // // set lens view vector // 고정변환
-    // auto B_T = lens.transposeMatrix(lens_viewvector, 4, 4);
-
-    // Eigen::Matrix<float, 4, 4, Eigen::RowMajor> matA(CM.convert_matrix.data());
-    // Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> matB = 
-    //     Eigen::Map<Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>(B_T.data(), 4, 4);
-    // Eigen::MatrixXf matC;
-
-    // matC.resize(4, 4);
-    // matC = matA * matB;
-
-
 #if WINDOW
     // 한 프레임씩 while문
     while (!glfwWindowShouldClose(window)) {
@@ -404,25 +332,6 @@ int main(int argc, char* argv[]) {
         space.clearLines();
         space.clearBoxes();
         space.drawGrid();
-
-        std::vector<glm::vec3> positions;
-        std::vector<glm::vec3> colors;
-        std::vector<std::vector<glm::vec3>> corners_in_camera;
-
-        for(size_t i = 0; i < lens_views.size(); ++i) {
-            positions.push_back(cameras[i].position);
-            colors.push_back(cameras[i].color);
-            corners_in_camera.push_back(lens_views[i].lens_view_vector);
-        }
-        space.addCameraFOVs(positions, colors, corners_in_camera, matC_list);
-
-        // // add lens lines
-        // glm::vec3 yellow(255.0f, 255.0f, 0.0f);
-        // space.addLine(glm::vec3(t.x, t.y, t.z), glm::vec3(matC(0,0), matC(1,0), matC(2,0)), yellow);
-        // space.addLine(glm::vec3(t.x, t.y, t.z), glm::vec3(matC(0,1), matC(1,1), matC(2,1)), yellow);
-        // space.addLine(glm::vec3(t.x, t.y, t.z), glm::vec3(matC(0,2), matC(1,2), matC(2,2)), yellow);
-        // space.addLine(glm::vec3(t.x, t.y, t.z), glm::vec3(matC(0,3), matC(1,3), matC(2,3)), yellow);
-
 
         int new_ms_per_frame = ms_per_frame * video_speed_coeffi;
         if(prev_speed_coeffi != video_speed_coeffi) {
