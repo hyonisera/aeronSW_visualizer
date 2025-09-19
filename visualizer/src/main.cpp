@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    std::string uam_data_path = "../../data/uam_data";
+    std::string uam_data_path = "../../data/test0828";
 
     // 디렉토리 존재 확인
     if(!std::filesystem::exists(uam_data_path)) {

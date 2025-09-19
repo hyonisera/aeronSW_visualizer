@@ -222,7 +222,7 @@ void Space::lidarIntoSpace(const LidarBinary& index) {
 }
 
 void Space::objIntoSpace(const ObjBinary& index) {
-    glm::vec3 camera0(CAMERA0_X, CAMERA0_Y, CAMERA0_Z);
+    // glm::vec3 camera0(CAMERA0_X, CAMERA0_Y, CAMERA0_Z);
 
     
     render_text_list.clear();
@@ -258,17 +258,17 @@ void Space::objIntoSpace(const ObjBinary& index) {
         #endif
 
         // 카메라에서 object detection하여 인지한 물체가 있을 수 있는 공간을 표시
-
+        // 좌표변환 이후 클러스터링 이전의 std::vector<std::vector<glm::vec3>> bcr; (box_converted_regions(float값))으로 표시
+        // 좌표변환시 config.txt에 기록된 라이다 기준의 카메라 좌표가 라이다 기준으로 좌표변환되기 때문에 config 좌표는 없어야 함
         const glm::vec3 yellow(1.0f, 1.0f, 0.0f);
         const glm::vec3 green(0.2f, 1.0f, 0.2f);
         for (const auto& region : index.bcr) {
             if (region.empty()) continue;
 
-            // 카메라 -> 꼭짓점
             for (const auto& p : region) {
                 // 필요시 유효성 체크
                 if (!std::isfinite(p.x) || !std::isfinite(p.y) || !std::isfinite(p.z)) continue;
-                addLine(camera0, p, yellow);
+                addLine(glm::vec3(0.0f, 0.0f, 0.0f), p, yellow);
             }
 
             // // 꼭짓점 테두리(폐곡선)

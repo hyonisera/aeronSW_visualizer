@@ -28,13 +28,13 @@
 #define VIDEO_SPEED_COEFFI_MIN  0.005f            //최소계수
 
 // dataset
-#define COCODATASET 1
-
+#define COCODATASET 0
+#define DATASET     1
 
 // 라이다와 카메라 사이의 거리(float) config.txt
-#define CAMERA0_X       -0.09
-#define CAMERA0_Y       -0.21
-#define CAMERA0_Z       0.0
+// #define CAMERA0_X       0.0
+// #define CAMERA0_Y       0.15
+// #define CAMERA0_Z       0.0
 
 
 #include <chrono>
@@ -85,5 +85,11 @@ static const std::unordered_map<int, std::string> objId_to_label = {
     {65, "remote"},         {66, "keyboard"},   {67, "cell phone"},    {68, "microwave"},     {69, "oven"},
     {70, "toaster"},        {71, "sink"},       {72, "refrigerator"},  {73, "book"},          {74, "clock"},
     {75, "vase"},           {76, "scissors"},   {77, "teddy bear"},    {78, "hair drier"},    {79, "toothbrush"}
+};
+#endif
+
+#if DATASET
+static const std::unordered_map<int, std::string> objId_to_label = {
+    {0, "aircraft"}, {1, "helicopter"}, {2, "drone"}, {3, "bird"}
 };
 #endif
